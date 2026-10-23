@@ -11,7 +11,7 @@ pipeline {
         
         // Dynamic build tag matching Jenkins execution number
         IMAGE_TAG          = "${BUILD_NUMBER}"
-        APP_VERSION        = '1.0.0'
+        APP_VERSION        = '2.0.0'
     }
 
     stages {
