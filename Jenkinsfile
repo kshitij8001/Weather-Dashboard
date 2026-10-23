@@ -1,6 +1,11 @@
 pipeline {
     agent any
 
+    // Automatically trigger builds on GitHub push events via Webhook
+    triggers {
+        githubPush()
+    }
+
     environment {
         // Change this to your Docker Hub username (e.g., 'yourusername/weather-dashboard')
         // Or your AWS ECR Registry URI (e.g., '<account-id>.dkr.ecr.<region>.amazonaws.com/weather-dashboard')

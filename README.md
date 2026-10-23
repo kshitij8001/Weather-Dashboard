@@ -91,7 +91,7 @@ The `Jenkinsfile` implements a declarative pipeline fulfilling all 7 stages requ
 | Stage # | Stage Name | Action Executed | Tool Used |
 |---|---|---|---|
 | **1** | **Source Code** | Source code maintained in GitHub repository with structured branches. | GitHub / Git |
-| **2** | **Jenkins Checkout** | Jenkins triggers on push, checks out latest source code via Git plugin. | Jenkins / Git Plugin |
+| **2** | **Jenkins Checkout** | Jenkins triggers automatically on `git push` via GitHub Webhook (`githubPush()`), checking out latest code. | Jenkins / GitHub Webhook |
 | **3** | **Build and Test** | Virtual environment created, dependencies installed, automated `pytest` suite executed with JUnit test reporting. | Python 3, Pytest |
 | **4** | **Docker Build** | Builds lean container image tagged with `${BUILD_NUMBER}` and `latest`. | Docker CLI |
 | **5** | **Push Image** | Authenticates securely using Jenkins stored credentials and pushes image to Docker Hub / AWS ECR. | Docker Hub / ECR |

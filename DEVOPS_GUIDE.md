@@ -172,18 +172,53 @@ sudo -u jenkins kubectl get nodes
 1. Go to Jenkins Home, click **"New Item"**.
 2. Enter item name: `Weather-Dashboard-Pipeline`.
 3. Select **"Pipeline"** and click **OK**.
-4. Scroll to the **Pipeline** section:
+4. Scroll to **Build Triggers**:
+   - Check **"GitHub hook trigger for GITScm polling"**
+5. Scroll to the **Pipeline** section:
    - **Definition:** `Pipeline script from SCM`
    - **SCM:** `Git`
    - **Repository URL:** `https://github.com/<your-username>/Weather-Dashboard.git`
    - **Branch Specifier:** `*/main`
    - **Script Path:** `Jenkinsfile`
-5. Click **Save**.
-6. Click **"Build Now"** to execute your first pipeline run!
+6. Click **Save**.
+7. Click **"Build Now"** once manually so Jenkins reads the `Jenkinsfile` and registers the webhook trigger.
 
 ---
 
-## 8. Accessing the Application from Browser
+## 8. Configuring GitHub Webhook (Automatic Build on Git Push)
+
+To trigger the Jenkins pipeline automatically every time you run `git push`:
+
+### Step 1: Open GitHub Repository Settings
+1. Go to your GitHub repository: `https://github.com/kshitij8001/Weather-Dashboard`
+2. Click **Settings** (top navigation tab).
+3. On the left sidebar under *Code and automation*, click **Webhooks**.
+4. Click the **Add webhook** button.
+
+### Step 2: Configure Webhook Parameters
+| Field | Value | Notes |
+|---|---|---|
+| **Payload URL** | `http://<EC2-PUBLIC-IP>:8080/github-webhook/` | **CRITICAL:** Include the trailing slash `/` |
+| **Content type** | `application/json` | Select JSON payload format |
+| **Secret** | *(Leave blank)* | Optional HMAC secret |
+| **SSL verification** | *Enable* (or *Disable* if using raw HTTP on EC2) | Safe for testing on EC2 HTTP |
+| **Which events?** | `Just the push event` | Triggers on git push to repository |
+| **Active** | *Checked* (Enabled) | Must be checked |
+
+5. Click **Add webhook**.
+
+### Step 3: Verify Webhook Delivery
+- GitHub will immediately send a test ping.
+- Refresh the page and check the status:
+  - **Green checkmark (HTTP 200):** Jenkins successfully received and accepted the webhook.
+  - **Red exclamation (Timeout / 403 / 404):**
+    - Check EC2 Security Group: ensure port `8080` allows Inbound TCP traffic from `0.0.0.0/0`.
+    - Ensure URL ends with `/github-webhook/`.
+    - Ensure Jenkins has run at least one build so it knows about the GitHub repository.
+
+---
+
+## 9. Accessing the Application from Browser
 
 When the pipeline completes Step 6 and Step 7:
 1. Minikube exposes the service on NodePort `30080`.
@@ -208,7 +243,7 @@ When the pipeline completes Step 6 and Step 7:
 
 ---
 
-## 9. Demonstrating Code Change (Step 9 of Student Guide)
+## 10. Demonstrating Code Change (Step 9 of Student Guide)
 
 To demonstrate the source-code redeployment during evaluation:
 1. In `app.py`, update:
