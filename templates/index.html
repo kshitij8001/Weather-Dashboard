@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Dashboard | CI/CD DevOps Project</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <!-- Top Navigation Bar -->
+    <header class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <div class="brand-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="brand-title">WeatherOps Dashboard</h1>
+                    <span class="brand-subtitle">Automated CI/CD Deployment</span>
+                </div>
+            </div>
+
+            <div class="nav-meta">
+                <div class="meta-badges">
+                    <span class="badge badge-version" id="versionBadge" title="Application Version (Change for Step 9)">
+                        v{{ app_version }}
+                    </span>
+                    <span class="badge badge-env" id="envBadge">
+                        {{ environment }}
+                    </span>
+                    <span class="badge badge-pod" id="podBadge" title="Kubernetes Pod Hostname">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect width="20" height="14" x="2" y="3" rx="2"/>
+                            <line x1="8" x2="16" y1="21" y2="21"/>
+                            <line x1="12" x2="12" y1="17" y2="21"/>
+                        </svg>
+                        pod: {{ hostname[:12] }}
+                    </span>
+                </div>
+
+                <div class="unit-toggle" id="unitToggle">
+                    <button type="button" class="unit-btn active" data-unit="metric">°C</button>
+                    <button type="button" class="unit-btn" data-unit="imperial">°F</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="main-container">
+        <!-- Search & Quick Selection -->
+        <section class="search-section">
+            <form id="searchForm" class="search-bar">
+                <div class="search-input-wrapper">
+                    <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"/>
+                        <path d="m21 21-4.3-4.3"/>
+                    </svg>
+                    <input type="text" id="cityInput" placeholder="Search any city (e.g., Pune, Mumbai, London, Tokyo, New York)..." autocomplete="off" required>
+                </div>
+                <button type="submit" class="btn btn-primary" id="searchBtn">
+                    <span>Search Weather</span>
+                </button>
+            </form>
+
+            <div class="quick-cities">
+                <span class="quick-label">Popular Cities:</span>
+                <button class="city-chip" data-city="Pune">Pune</button>
+                <button class="city-chip" data-city="Mumbai">Mumbai</button>
+                <button class="city-chip" data-city="Delhi">Delhi</button>
+                <button class="city-chip" data-city="London">London</button>
+                <button class="city-chip" data-city="New York">New York</button>
+                <button class="city-chip" data-city="Tokyo">Tokyo</button>
+                <button class="city-chip" data-city="Sydney">Sydney</button>
+            </div>
+        </section>
+
+        <!-- Loading & Alert Overlay -->
+        <div id="loadingIndicator" class="loading-state hidden">
+            <div class="spinner"></div>
+            <p>Fetching real-time weather data...</p>
+        </div>
+
+        <div id="errorAlert" class="error-alert hidden">
+            <span id="errorMessage">Unable to fetch weather. Please try another city.</span>
+        </div>
+
+        <!-- Dashboard Content -->
+        <div id="weatherContent" class="dashboard-grid">
+            <!-- Current Weather Main Card -->
+            <section class="card current-weather-card">
+                <div class="card-header">
+                    <div>
+                        <h2 class="city-name" id="cityName">{{ weather.city }}</h2>
+                        <span class="country-name" id="countryName">{{ weather.country }}</span>
+                    </div>
+                    <div class="status-indicator">
+                        <span class="live-dot"></span>
+                        <span id="sourceTag">Live Feed</span>
+                    </div>
+                </div>
+
+                <div class="current-weather-body">
+                    <div class="temperature-block">
+                        <div class="temp-display">
+                            <span class="temp-value" id="currentTemp">{{ weather.temp }}</span>
+                            <span class="temp-unit" id="tempUnit">{{ weather.temp_unit }}</span>
+                        </div>
+                        <div class="weather-condition" id="conditionText">{{ weather.condition }}</div>
+                        <div class="feels-like">
+                            Feels like <span id="feelsLike">{{ weather.feels_like }}</span><span id="feelsLikeUnit">{{ weather.temp_unit }}</span>
+                        </div>
+                    </div>
+
+                    <div class="weather-icon-large" id="mainWeatherIcon">
+                        <!-- Dynamic SVG Icon rendered via JS -->
+                        <div class="icon-box" id="iconWrapper">
+                            <svg width="72" height="72" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                                <circle cx="12" cy="12" r="4"/>
+                                <path d="M12 2v2"/>
+                                <path d="M12 20v2"/>
+                                <path d="m4.93 4.93 1.41 1.41"/>
+                                <path d="m17.66 17.66 1.41 1.41"/>
+                                <path d="M2 12h2"/>
+                                <path d="M20 12h2"/>
+                                <path d="m6.34 17.66-1.41 1.41"/>
+                                <path d="m19.07 4.93-1.41 1.41"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Metrics Overview Cards -->
+            <section class="metrics-grid">
+                <!-- Humidity -->
+                <div class="card metric-card">
+                    <div class="metric-top">
+                        <span class="metric-title">Humidity</span>
+                        <div class="metric-icon-small">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="metric-value-box">
+                        <span class="metric-val" id="humidityVal">{{ weather.humidity }}</span>
+                        <span class="metric-sub">%</span>
+                    </div>
+                    <div class="metric-footer">
+                        <div class="progress-bar-bg">
+                            <div class="progress-bar-fill" id="humidityBar" style="width: {{ weather.humidity }}%;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Wind Speed -->
+                <div class="card metric-card">
+                    <div class="metric-top">
+                        <span class="metric-title">Wind Speed</span>
+                        <div class="metric-icon-small">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M17.7 7.7A7.5 7.5 0 0 0 5 12h14a4 4 0 0 1 0 8H3"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="metric-value-box">
+                        <span class="metric-val" id="windVal">{{ weather.wind }}</span>
+                        <span class="metric-sub" id="windUnit">{{ weather.wind_unit }}</span>
+                    </div>
+                    <div class="metric-footer">
+                        <span class="metric-note">Surface level winds</span>
+                    </div>
+                </div>
+
+                <!-- Atmospheric Pressure -->
+                <div class="card metric-card">
+                    <div class="metric-top">
+                        <span class="metric-title">Pressure</span>
+                        <div class="metric-icon-small">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <path d="m14 10-4 4"/>
+                                <path d="m12 6 2 4"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="metric-value-box">
+                        <span class="metric-val" id="pressureVal">{{ weather.pressure }}</span>
+                        <span class="metric-sub">hPa</span>
+                    </div>
+                    <div class="metric-footer">
+                        <span class="metric-note">Barometric normal</span>
+                    </div>
+                </div>
+
+                <!-- UV Index -->
+                <div class="card metric-card">
+                    <div class="metric-top">
+                        <span class="metric-title">UV Index</span>
+                        <div class="metric-icon-small">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="5"/>
+                                <path d="M12 1v2"/>
+                                <path d="M12 21v2"/>
+                                <path d="M4.22 4.22l1.42 1.42"/>
+                                <path d="M18.36 18.36l1.42 1.42"/>
+                                <path d="M1 12h2"/>
+                                <path d="M21 12h2"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="metric-value-box">
+                        <span class="metric-val" id="uvVal">{{ weather.uv_index }}</span>
+                        <span class="metric-sub">/ 11</span>
+                    </div>
+                    <div class="metric-footer">
+                        <span class="uv-badge" id="uvBadge">Moderate</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 5-Day Forecast Section -->
+            <section class="card forecast-section">
+                <div class="section-header">
+                    <h3 class="section-title">5-Day Meteorological Forecast</h3>
+                    <span class="section-subtitle">Auto-updated from satellite sensors</span>
+                </div>
+                <div class="forecast-cards" id="forecastCards">
+                    {% for day in weather.forecast %}
+                    <div class="forecast-day-card">
+                        <span class="f-day">{{ day.day }}</span>
+                        <div class="f-icon">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/>
+                            </svg>
+                        </div>
+                        <span class="f-cond">{{ day.condition }}</span>
+                        <div class="f-temps">
+                            <span class="f-high">{{ day.high }}{{ weather.temp_unit }}</span>
+                            <span class="f-low">{{ day.low }}{{ weather.temp_unit }}</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </section>
+
+            <!-- DevOps & Infrastructure Status Bar -->
+            <section class="card devops-info-card">
+                <div class="devops-header">
+                    <div class="devops-title-group">
+                        <span class="pulse-indicator"></span>
+                        <h4>DevOps & CI/CD Cluster Telemetry</h4>
+                    </div>
+                    <span class="devops-rubric-tag">TYCSE Cloud & DevOps (CCA 2)</span>
+                </div>
+                <div class="devops-grid">
+                    <div class="devops-item">
+                        <span class="item-label">App Release</span>
+                        <span class="item-value" id="releaseVersion">v{{ app_version }}</span>
+                    </div>
+                    <div class="devops-item">
+                        <span class="item-label">Deployment Status</span>
+                        <span class="item-value status-healthy">Healthy (Active)</span>
+                    </div>
+                    <div class="devops-item">
+                        <span class="item-label">Container Engine</span>
+                        <span class="item-value">Docker Containerized</span>
+                    </div>
+                    <div class="devops-item">
+                        <span class="item-label">Orchestration</span>
+                        <span class="item-value">Kubernetes (Minikube)</span>
+                    </div>
+                    <div class="devops-item">
+                        <span class="item-label">CI/CD Engine</span>
+                        <span class="item-value">Jenkins Declarative Pipeline</span>
+                    </div>
+                    <div class="devops-item">
+                        <span class="item-label">Health Endpoint</span>
+                        <a href="/health" target="_blank" class="item-link">/health (200 OK)</a>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+        <div class="footer-container">
+            <p>Weather Dashboard Application &bull; Built with Python & Flask &bull; Automated Deployment on AWS EC2 &amp; Minikube</p>
+            <div class="footer-links">
+                <a href="/health" target="_blank">Health Check</a>
+                <span>&bull;</span>
+                <a href="/api/info" target="_blank">Pod Info</a>
+                <span>&bull;</span>
+                <a href="/api/weather?city=Pune" target="_blank">Weather API</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Pass initial data to client-side JS -->
+    <script>
+        window.INITIAL_WEATHER = {{ weather | tojson }};
+    </script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

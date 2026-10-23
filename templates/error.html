@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Error {{ error_code }} | Weather Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <header class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <h1 class="brand-title">WeatherOps Dashboard</h1>
+            </div>
+            <div class="nav-meta">
+                <span class="badge badge-version">v{{ app_version }}</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-container" style="display:flex; justify-content:center; align-items:center; min-height:60vh;">
+        <div class="card" style="max-width: 500px; text-align: center; padding: 40px;">
+            <h2 style="font-size: 56px; color: #ef4444; margin-bottom: 8px;">{{ error_code }}</h2>
+            <h3 style="font-size: 20px; color: #f8fafc; margin-bottom: 12px;">{{ message }}</h3>
+            <p style="color: #94a3b8; margin-bottom: 24px;">The requested resource could not be found or an internal error occurred.</p>
+            <a href="/" class="btn btn-primary" style="display: inline-block; text-decoration: none;">Return to Dashboard</a>
+        </div>
+    </main>
+</body>
+</html>

@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: weather-dashboard
+  labels:
+    app: weather-dashboard
+    tier: frontend
+    project: tycse-cca2
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: weather-dashboard
+  template:
+    metadata:
+      labels:
+        app: weather-dashboard
+        tier: frontend
+    spec:
+      containers:
+      - name: weather-dashboard
+        # Replace with your Docker Hub username or AWS ECR URI
+        image: kshitij8001/weather-dashboard:latest
+        imagePullPolicy: Always
+        ports:
+        - name: http
+          containerPort: 5000
+        env:
+        - name: PORT
+          value: "5000"
+        - name: APP_VERSION
+          value: "1.0.0"
+        - name: ENVIRONMENT
+          value: "production-minikube"
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "500m"
+            memory: "256Mi"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 5000
+          initialDelaySeconds: 15
+          periodSeconds: 10
+          timeoutSeconds: 3
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 5000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 2
+          failureThreshold: 2
