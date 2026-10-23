@@ -7,7 +7,7 @@ from weather_service import fetch_weather_data, format_weather_response
 app = Flask(__name__)
 
 # Application metadata (Used for Step 9: Demonstrating source-code redeployment)
-APP_VERSION = os.getenv("APP_VERSION", "2.0.0")
+APP_VERSION = os.getenv("APP_VERSION", "3.0.0")
 ENVIRONMENT = os.getenv("ENVIRONMENT", "production")
 HOSTNAME = socket.gethostname()
 START_TIME = time.time()
